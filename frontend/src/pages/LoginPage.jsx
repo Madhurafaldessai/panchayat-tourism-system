@@ -1,164 +1,173 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { User, Phone, MapPin, Home } from 'lucide-react';
+import { User, Phone, MapPin, Home, Shield, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
   const navigate = useNavigate();
 
-  // 1. State for data
+  const [role, setRole] = useState("citizen");
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    taluka: '',
     village: '',
-    pincode: ''
+    adminId: '',
+    password: ''
   });
 
-  // 2. State for errors
-  const [errors, setErrors] = useState({
-    name: '',  
-    phone: '',
-    village: '',
-    pincode: ''
-  });
+  const [errors, setErrors] = useState({});
 
-  // 3. Validation Logic
+  // Goa Talukas & Villages (sample - you can expand later)
+  const talukas = ["Bardez", "Tiswadi", "Salcete"];
+
+  const villages = {
+    Bardez: ["Mapusa", "Calangute", "Anjuna"],
+    Tiswadi: ["Panaji", "Chimbel", "Taleigao"],
+    Salcete: ["Margao", "Colva", "Benaulim"]
+  };
+
   const validate = () => {
     let newErrors = {};
 
-    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (role === "citizen") {
+      if (!formData.name) newErrors.name = "Name required";
 
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Phone must be exactly 10 digits";
-    }
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        newErrors.phone = "Enter valid 10 digit phone";
+      }
 
-    if (!formData.village.trim()) newErrors.village = "Village name is required";
-
-    const pinRegex = /^[0-9]{6}$/;
-    if (!pinRegex.test(formData.pincode)) {
-      newErrors.pincode = "Enter a valid 6-digit PIN code";
+      if (!formData.taluka) newErrors.taluka = "Select taluka";
+      if (!formData.village) newErrors.village = "Select village";
+    } else {
+      if (!formData.adminId) newErrors.adminId = "Admin ID required";
+      if (!formData.password) newErrors.password = "Password required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // 4. Submit Handler
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
     if (validate()) {
-      console.log("Data is valid!");
-      
-      // Check if the user is an Admin or a Citizen
-      const userName = formData.name.toLowerCase().trim();
-      
-      if (userName === 'admin') {
-        navigate('/dashboard');
+      if (role === "citizen") {
+        navigate('/CitizenDashboard');
       } else {
-        // All citizens go to the reporting page
-        navigate('/citizen/report');
+        navigate('/Dashboard');
       }
     }
   };
 
-  // 5. Change Handler
   const handleChange = ({ target }) => {
     const { name, value } = target;
     setFormData({ ...formData, [name]: value });
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-emerald-500 via-emerald-700 to-teal-900 p-4">
-      {/* Main Glass Card */}
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl border border-white/20">
-        
-        {/* Text Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">LOGIN</h1>
-          <p className="text-gray-500 text-sm leading-relaxed">Enter your details</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-500 via-emerald-700 to-teal-900 p-4">
+      
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl">
+
+        {/* Role Toggle */}
+        <div className="flex mb-6 bg-gray-100 rounded-2xl p-1">
+          <button
+            onClick={() => setRole("citizen")}
+            className={`flex-1 py-2 rounded-xl ${role === "citizen" ? "bg-white shadow" : ""}`}
+          >
+            Citizen
+          </button>
+          <button
+            onClick={() => setRole("admin")}
+            className={`flex-1 py-2 rounded-xl ${role === "admin" ? "bg-white shadow" : ""}`}
+          >
+            Admin
+          </button>
         </div>
 
-        {/* Form Fields */}
+        <h1 className="text-center text-xl font-bold mb-6">LOGIN</h1>
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name Field */}
-          <div>
-            <div className="relative">
-              <User className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input 
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                type="text" 
-                placeholder="Full Name" 
-                className={`w-full pl-12 pr-4 py-3 bg-gray-100/50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400 ${errors.name ? 'ring-2 ring-red-500' : ''}`}
-              />
-            </div>
-            {errors.name && <p className="text-red-500 text-[10px] mt-1 ml-4">{errors.name}</p>}
-          </div>
 
-          {/* Phone Field */}
-          <div>
-            <div className="relative">
-              <Phone className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input 
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                type="tel" 
-                placeholder="Phone Number" 
-                className={`w-full pl-12 pr-4 py-3 bg-gray-100/50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400 ${errors.phone ? 'ring-2 ring-red-500' : ''}`}
-              />
-            </div>
-            {errors.phone && <p className="text-red-500 text-[10px] mt-1 ml-4">{errors.phone}</p>}
-          </div>
+          {/* CITIZEN FORM */}
+          {role === "citizen" && (
+            <>
+              <Input icon={<User />} name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} error={errors.name} />
 
-          {/* Village Field */}
-          <div>
-            <div className="relative">
-              <Home className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input 
-                name="village"
-                value={formData.village}
-                onChange={handleChange}
-                type="text" 
-                placeholder="Village Name" 
-                className={`w-full pl-12 pr-4 py-3 bg-gray-100/50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400 ${errors.village ? 'ring-2 ring-red-500' : ''}`}
-              />
-            </div>
-            {errors.village && <p className="text-red-500 text-[10px] mt-1 ml-4">{errors.village}</p>}
-          </div>
+              <Input icon={<Phone />} name="phone" placeholder="Phone Number" value={formData.phone} onChange={handleChange} error={errors.phone} />
 
-          {/* Pincode Field */}
-          <div>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
-              <input 
-                name="pincode"
-                value={formData.pincode}
-                onChange={handleChange}
-                type="text" 
-                placeholder="PIN Code" 
-                className={`w-full pl-12 pr-4 py-3 bg-gray-100/50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-gray-400 ${errors.pincode ? 'ring-2 ring-red-500' : ''}`}
-              />
-            </div>
-            {errors.pincode && <p className="text-red-500 text-[10px] mt-1 ml-4">{errors.pincode}</p>}
-          </div>
+              {/* Taluka Dropdown */}
+              <div>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+                  <select
+                    name="taluka"
+                    value={formData.taluka}
+                    onChange={handleChange}
+                    className="w-full pl-12 py-3 bg-gray-100 rounded-2xl outline-none"
+                  >
+                    <option value="">Select Taluka</option>
+                    {talukas.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                {errors.taluka && <p className="text-red-500 text-xs ml-4">{errors.taluka}</p>}
+              </div>
 
-          <button type="submit" className="w-full bg-[#1a1a1a] hover:bg-black text-white font-semibold py-4 rounded-2xl mt-4 shadow-lg active:scale-[0.98] transition-transform">
+              {/* Village Dropdown */}
+              <div>
+                <div className="relative">
+                  <Home className="absolute left-4 top-3.5 w-5 h-5 text-gray-400" />
+                  <select
+                    name="village"
+                    value={formData.village}
+                    onChange={handleChange}
+                    className="w-full pl-12 py-3 bg-gray-100 rounded-2xl outline-none"
+                  >
+                    <option value="">Select Village</option>
+                    {formData.taluka &&
+                      villages[formData.taluka]?.map(v => (
+                        <option key={v}>{v}</option>
+                      ))}
+                  </select>
+                </div>
+                {errors.village && <p className="text-red-500 text-xs ml-4">{errors.village}</p>}
+              </div>
+            </>
+          )}
+
+          {/* ADMIN FORM */}
+          {role === "admin" && (
+            <>
+              <Input icon={<Shield />} name="adminId" placeholder="Admin ID" value={formData.adminId} onChange={handleChange} error={errors.adminId} />
+
+              <Input icon={<Key />} name="password" type="password" placeholder="Password" value={formData.password} onChange={handleChange} error={errors.password} />
+            </>
+          )}
+
+          <button className="w-full bg-black text-white py-4 rounded-2xl mt-4">
             PROCEED
           </button>
         </form>
-
-        <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-dotted border-gray-300"></div>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
+
+// Reusable Input Component
+const Input = ({ icon, ...props }) => (
+  <div>
+    <div className="relative">
+      <div className="absolute left-4 top-3.5 text-gray-400">{icon}</div>
+      <input
+        {...props}
+        className="w-full pl-12 py-3 bg-gray-100 rounded-2xl outline-none"
+      />
+    </div>
+    {props.error && <p className="text-red-500 text-xs ml-4">{props.error}</p>}
+  </div>
+);
 
 export default LoginPage;
