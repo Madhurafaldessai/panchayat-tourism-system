@@ -5,7 +5,7 @@ import LoginPage from './pages/LoginPage';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/panchayat-tourism-system">
       <Routes>
         <Route path="/" element={<LoginPage />} />
         
