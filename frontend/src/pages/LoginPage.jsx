@@ -47,11 +47,19 @@ const LoginPage = () => {
   // 4. Submit Handler
   const handleSubmit = (event) => {
     event.preventDefault();
+    
     if (validate()) {
-      console.log("Data is valid! Moving to Dashboard...");
-      navigate('/dashboard');
-    } else {
-      console.log("Validation failed:", errors);
+      console.log("Data is valid!");
+      
+      // Check if the user is an Admin or a Citizen
+      const userName = formData.name.toLowerCase().trim();
+      
+      if (userName === 'admin') {
+        navigate('/dashboard');
+      } else {
+        // All citizens go to the reporting page
+        navigate('/citizen/report');
+      }
     }
   };
 
