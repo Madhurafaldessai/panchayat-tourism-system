@@ -1,16 +1,35 @@
-import { useState } from 'react';
-import DashboardLayout from './layouts/DashboardLayout';
-import ReportIssue from './pages/ReportIssue';
-import DashboardPage from './pages/Dashboard';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import DashboardLayout from './layouts/DashboardLayout'; 
+import ReportIssue from './pages/ReportIssue';          
+import DashboardPage from './pages/Dashboard';          
+import LoginPage from './pages/LoginPage';              
 
-export default function App() {
-  // Simple state routing for this demo
-  const [currentPage, setCurrentPage] = useState('/report');
-
+const App = () => {
   return (
-    <DashboardLayout activeRoute={currentPage}>
-      {currentPage === '/' && <DashboardPage />}
-      {currentPage === '/report' && <ReportIssue />}
-    </DashboardLayout>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        
+        <Route 
+          path="/dashboard" 
+          element={
+            <DashboardLayout>
+              <DashboardPage />
+            </DashboardLayout>
+          } 
+        />
+
+        <Route 
+          path="/report-issue" 
+          element={
+            <DashboardLayout>
+              <ReportIssue />
+            </DashboardLayout>
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
   );
-}
+};
+
+export default App;
