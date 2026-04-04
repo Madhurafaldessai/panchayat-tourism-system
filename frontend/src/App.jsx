@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import DashboardLayout from './layouts/DashboardLayout'; 
-import ReportIssue from './pages/ReportIssue';          
+import DashboardLayout from './layouts/DashboardLayout';          
 import DashboardPage from './pages/Dashboard';          
 import LoginPage from './pages/LoginPage';              
 
@@ -15,15 +14,6 @@ const App = () => {
           element={
             <DashboardLayout>
               <DashboardPage />
-            </DashboardLayout>
-          } 
-        />
-
-        <Route 
-          path="/report-issue" 
-          element={
-            <DashboardLayout>
-              <ReportIssue />
             </DashboardLayout>
           } 
         />
