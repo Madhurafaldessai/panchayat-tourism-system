@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { User, Phone, MapPin, Home, Shield, Key } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from "../supabaseClient";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -50,17 +51,50 @@ const LoginPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (validate()) {
-      if (role === "citizen") {
-        navigate('/CitizenDashboard');
-      } else {
-        navigate('/Dashboard');
-      }
+  if (!validate()) return;
+
+  // ✅ CITIZEN → SAVE DATA
+  if (role === "citizen") {
+    const { error } = await supabase
+      .from('citizens')
+      .insert([{
+        name: formData.name,
+        phone: formData.phone,
+        taluka: formData.taluka,
+        village: formData.village
+      }]);
+
+    if (error) {
+      console.log(error);
+      alert("Error saving data");
+      return;
     }
-  };
+
+    alert("Citizen data saved!");
+    navigate('/CitizenDashboard');
+  }
+
+  // 🔐 ADMIN → CHECK LOGIN
+  else {
+    const { data, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('admin_id', formData.adminId)
+      .eq('password', formData.password)
+      .single();
+
+    if (error) {
+  alert(error.message);  // ← change this line
+  return;
+}
+
+    alert("Login successful!");
+    navigate('/Dashboard');
+  }
+};
 
   const handleChange = ({ target }) => {
     const { name, value } = target;
