@@ -27,7 +27,7 @@ const App = () => {
 
         {/* Citizen Route */}
         <Route 
-          path="/citizen/report" 
+          path="/citizendashboard" 
           element={
             <CitizenDashboardLayout>
               <CitizenDashboard />

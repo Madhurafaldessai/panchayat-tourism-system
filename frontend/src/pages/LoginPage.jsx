@@ -19,7 +19,7 @@ const LoginPage = () => {
 
   const [errors, setErrors] = useState({});
 
-  // Goa Talukas & Villages (sample - you can expand later)
+  // Goa Talukas & Villages 
   const talukas = ["Bardez", "Tiswadi", "Salcete"];
 
   const villages = {
