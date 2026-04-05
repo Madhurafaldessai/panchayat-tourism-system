@@ -44,9 +44,16 @@ const CitizenDashboardLayout = ({ children }) => {
         </nav>
 
         <div className="p-6 border-t border-white/10">
-          <button onClick={() => navigate('/')} className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl hover:bg-red-500/20 text-emerald-100 transition-all">
-            <LogOut className="w-5 h-5" />
-            <span className="font-bold text-sm tracking-widest uppercase">Logout</span>
+          <button 
+            onClick={() => handleNavigation('/')}
+            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl 
+                       text-emerald-100 relative overflow-hidden group
+                       bg-white/5 backdrop-blur-md border border-white/10
+                       hover:border-red-400/40 hover:bg-red-500/10
+                       transition-all duration-300 shadow-lg"
+          >
+            <LogOut className="w-5 h-5 transition-all duration-500 group-hover:text-red-300" />
+            <span className="font-semibold text-sm tracking-wide">Logout</span>
           </button>
         </div>
       </aside>

@@ -64,9 +64,8 @@ const CitizenDashboard = () => {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Visual Header within Content */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-black text-gray-800">Submit Intelligence Report</h1>
-        <p className="text-gray-500 text-sm font-medium">Capture environmental or civic issues instantly.</p>
+      <div className="mb-9 rounded-3xl bg-zinc-300 h-20  shadow-2xl border border-black-100 text-white text-center">
+        <h1 className="text-2xl font-black mt-6 text-gray-800">REPORT   ISSUE</h1>
       </div>
 
       <div className="bg-white/80 backdrop-blur-sm rounded-[3rem] p-8 shadow-2xl border border-gray">
@@ -89,7 +88,7 @@ const CitizenDashboard = () => {
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:scale-110 transition-transform">
                     <Camera className="w-8 h-8 text-emerald-500 animate-pulse" />
                   </div>
-                  <p className="text-sm font-black text-emerald-800 tracking-tight">Tap to Photo / Video</p>
+                  <p className="text-sm font-black text-emerald-800 tracking-tight">Tap to Photo</p>
                   <p className="text-[10px] text-emerald-600/60 uppercase font-bold mt-1 tracking-widest">Auto Geo-Tagging Enabled</p>
                 </div>
               )}
