@@ -44,7 +44,7 @@ const DashboardLayout = ({ children }) => {
               <Leaf className="w-6 h-6 text-white" />
             </div>
             <span className="font-bold text-xl tracking-tight">
-              Citizen<span className="font-light opacity-80">Portal</span>
+              Admin<span className="font-light opacity-80">Portal</span>
             </span>
           </div>
           {/* Close button for mobile */}
