@@ -1,42 +1,41 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-// Admin Imports
+// @ts-nocheck
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
-import DashboardPage from './pages/Dashboard';
-// Citizen Imports
-import CitizenDashboardLayout from './layouts/CitizenDashboardLayout';
-import CitizenDashboard from './pages/CitizenDashboard';
+import Dashboard from './pages/Dashboard';
+import Heatmap from './pages/Heatmap';
 import LoginPage from './pages/LoginPage';
+import CitizenDashboard from './pages/CitizenDashboard'; // Ensure this exists in your pages folder
 
-const App = () => {
-  const repoName = "/panchayat-tourism-system"; 
-
+function App() {
   return (
-    <BrowserRouter basename={repoName}>
+    <BrowserRouter basename="/panchayat-tourism-system">
       <Routes>
+        {/* 1. Public Entry Point (Login Page) */}
         <Route path="/" element={<LoginPage />} />
 
-        {/* Admin Route */}
+        {/* 2. Citizen Flow: Redirected here after reporting */}
+        <Route path="/CitizenDashboard" element={<CitizenDashboard />} />
+
+        {/* 3. Admin Flow: Nested Routes under /dashboard */}
         <Route 
           path="/dashboard" 
-          element={
-            <DashboardLayout>
-              <DashboardPage />
-            </DashboardLayout>
-          } 
-        />
+          element={<DashboardLayout children={<Outlet />} />}
+        >
+          {/* Default view: /dashboard */}
+          <Route index element={<Dashboard />} /> 
+          
+          {/* Heatmap view: /dashboard/heatmap */}
+          <Route path="heatmap" element={<Heatmap />} />
+          
+          {/* Placeholder for future admin pages */}
+          {/* <Route path="issues" element={<IssuesSolved />} /> */}
+        </Route>
 
-        {/* Citizen Route */}
-        <Route 
-          path="/citizendashboard" 
-          element={
-            <CitizenDashboardLayout>
-              <CitizenDashboard />
-            </CitizenDashboardLayout>
-          } 
-        />
+        {/* 4. Fallback: Redirect to Login if route doesn't exist */}
+        <Route path="*" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>
   );
-};
+}
 
 export default App;
