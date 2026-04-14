@@ -21,11 +21,26 @@ const LoginPage = () => {
 
   const [errors, setErrors] = useState({});
 
-  const talukas = ["Bardez", "Tiswadi", "Salcete"];
+  // All 12 Goa Talukas with major Tourism Villages
+  const talukas = [
+    "Bardez", "Tiswadi", "Salcete", "Ponda", "Mormugao", 
+    "Bicholim", "Pernem", "Sattari", "Quepem", "Sanguem", 
+    "Canacona", "Dharbandora"
+  ];
+
   const villages = {
-    Bardez: ["Mapusa", "Calangute", "Anjuna"],
-    Tiswadi: ["Panaji", "Chimbel", "Taleigao"],
-    Salcete: ["Margao", "Colva", "Benaulim"]
+    Bardez: ["Calangute", "Candolim", "Anjuna", "Arpora", "Mapusa", "Aldona"],
+    Tiswadi: ["Panaji", "Old Goa", "Dona Paula", "Taleigao", "Bambolim"],
+    Salcete: ["Margao", "Colva", "Benaulim", "Cavelossim", "Majorda"],
+    Ponda: ["Ponda City", "Mardol", "Priol", "Curti", "Bandora"],
+    Mormugao: ["Vasco da Gama", "Bogmalo", "Sancoale", "Chicalim"],
+    Bicholim: ["Bicholim City", "Mayem", "Sanquelim", "Maem Lake"],
+    Pernem: ["Arambol", "Morjim", "Mandrem", "Querim", "Pernem City"],
+    Sattari: ["Valpoi", "Keri", "Honda", "Pissurlem"],
+    Quepem: ["Balli","Fatorpa","Curchorem", "Paroda", "Rivona"],
+    Sanguem: ["Sanguem City", "Netravali", "Uguem", "Kalay"],
+    Canacona: ["Palolem", "Agonda", "Patnem", "Canacona City", "Loliem"],
+    Dharbandora: ["Mollem", "Collem", "Sacorda", "Sancordem"]
   };
 
   const categoryWeights = {
@@ -60,16 +75,15 @@ const LoginPage = () => {
 
     if (role === "citizen") {
       if (!navigator.geolocation) {
-        alert("Geolocation not supported. Heatmap data will be incomplete.");
+        alert("Geolocation not supported.");
         saveCitizenData(null, null);
       } else {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords;
             
-            // --- PROXIMITY CHECK LOGIC ---
-            // Checking roughly a 50-100m radius for the same category
-            const { data: existingIssues, error: searchError } = await supabase
+            // Check for nearby duplicates
+            const { data: existingIssues } = await supabase
               .from('citizens')
               .select('id, category, upvotes')
               .eq('category', formData.category)
@@ -82,37 +96,31 @@ const LoginPage = () => {
             if (existingIssues && existingIssues.length > 0) {
               const issue = existingIssues[0];
               const confirmUpvote = window.confirm(
-                `A similar ${formData.category} issue has already been reported nearby. Would you like to upvote the existing report instead of creating a duplicate?`
+                `A similar ${formData.category} issue has already been reported nearby. Would you like to upvote it instead?`
               );
 
               if (confirmUpvote) {
-                const { error: upvoteError } = await supabase
+                await supabase
                   .from('citizens')
                   .update({ upvotes: (issue.upvotes || 1) + 1 })
                   .eq('id', issue.id);
 
                 setLoading(false);
-                if (!upvoteError) {
-                  alert("Thanks for upvoting! This helps us prioritize the issue.");
-                  navigate('/CitizenDashboard');
-                } else {
-                  alert("Error processing upvote.");
-                }
+                alert("Upvote registered!");
+                navigate('/CitizenDashboard');
                 return;
               }
             }
-
-            // If no duplicate or user declines upvote, save new data
             saveCitizenData(latitude, longitude);
           },
           () => {
-            alert("Location access denied. Location is required for the live map.");
+            alert("Location access denied.");
             setLoading(false);
           }
         );
       }
     } else {
-      // Admin Login
+      // ADMIN LOGIN LOGIC
       const { data, error } = await supabase
         .from('admins')
         .select('*')
@@ -121,12 +129,17 @@ const LoginPage = () => {
         .single();
 
       setLoading(false);
-      if (error) {
+      if (error || !data) {
         alert("Invalid Admin Credentials");
         return;
       }
-      alert("Login successful!");
-      navigate('/dashboard'); // Ensure this matches your App.jsx route (lowercase d)
+
+      // Store Admin info including their Village and Taluka
+      localStorage.setItem('adminVillage', data.village);
+      localStorage.setItem('adminId', data.admin_id);
+      
+      alert(`Login successful for ${data.village} Panchayat!`);
+      navigate('/dashboard'); 
     }
   };
 
@@ -144,13 +157,12 @@ const LoginPage = () => {
         latitude: lat,
         longitude: lng,
         intensity: intensityValue,
-        upvotes: 1 // Starting value for a new report
+        upvotes: 1
       }]);
 
     setLoading(false);
     if (error) {
-      console.log(error);
-      alert("Error saving data. Ensure the 'upvotes' column exists in Supabase.");
+      alert("Error saving data.");
       return;
     }
 
@@ -164,17 +176,17 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-500 via-emerald-700 to-teal-900 p-4 font-sans">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-500 via-emerald-700 to-teal-900 p-4 font-sans text-gray-800">
       <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-[2.5rem] p-8 shadow-2xl">
         
         <div className="text-center mb-6">
           <div className="bg-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
             <Leaf className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-emerald-900 tracking-tighter uppercase">Panchayat Portal</h1>
+          <h1 className="text-2xl font-black text-emerald-900 tracking-tighter uppercase leading-tight">Panchayat Portal</h1>
+          <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-widest mt-1 opacity-60">Tourism Management System</p>
         </div>
 
-        {/* Role Toggle */}
         <div className="flex mb-6 bg-gray-100 rounded-2xl p-1 border border-gray-200">
           <button
             type="button"
@@ -204,7 +216,7 @@ const LoginPage = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-8 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none appearance-none font-medium text-gray-700 focus:border-emerald-500 transition-all"
+                  className="w-full pl-12 pr-8 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none appearance-none font-medium text-gray-700 focus:border-emerald-500 transition-all text-sm"
                 >
                   <option value="">Issue Category</option>
                   {Object.keys(categoryWeights).map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -215,7 +227,16 @@ const LoginPage = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <SelectBox icon={<MapPin />} name="taluka" value={formData.taluka} onChange={handleChange} options={talukas} placeholder="Taluka" error={errors.taluka} />
-                <SelectBox icon={<Home />} name="village" value={formData.village} onChange={handleChange} options={formData.taluka ? villages[formData.taluka] : []} placeholder="Village" error={errors.village} />
+                <SelectBox 
+                  icon={<Home />} 
+                  name="village" 
+                  value={formData.village} 
+                  onChange={handleChange} 
+                  options={formData.taluka ? villages[formData.taluka] : []} 
+                  placeholder="Village" 
+                  error={errors.village} 
+                  disabled={!formData.taluka}
+                />
               </div>
             </>
           )}
@@ -229,7 +250,7 @@ const LoginPage = () => {
 
           <button 
             disabled={loading}
-            className="w-full bg-emerald-800 hover:bg-emerald-900 text-white py-4 rounded-2xl mt-4 font-black tracking-[0.2em] shadow-xl transition-all active:scale-95 disabled:opacity-50"
+            className="w-full bg-emerald-800 hover:bg-emerald-900 text-white py-4 rounded-2xl mt-4 font-black tracking-[0.2em] shadow-xl transition-all active:scale-95 disabled:opacity-50 text-xs"
           >
             {loading ? "PROCESSING..." : "PROCEED"}
           </button>
@@ -245,20 +266,21 @@ const Input = ({ icon, error, ...props }) => (
       <div className="absolute left-4 top-3.5 text-emerald-600/50">{icon}</div>
       <input
         {...props}
-        className="w-full pl-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-emerald-500 transition-all font-medium"
+        className="w-full pl-12 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none focus:border-emerald-500 transition-all font-medium text-sm"
       />
     </div>
     {error && <p className="text-red-500 text-[10px] font-bold mt-1 ml-4 uppercase">{error}</p>}
   </div>
 );
 
-const SelectBox = ({ icon, options, placeholder, error, ...props }) => (
+const SelectBox = ({ icon, options, placeholder, error, disabled, ...props }) => (
   <div>
     <div className="relative">
       <div className="absolute left-3 top-3.5 text-emerald-600/50">{React.cloneElement(icon, { size: 18 })}</div>
       <select
         {...props}
-        className="w-full pl-10 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm font-medium text-gray-700"
+        disabled={disabled}
+        className={`w-full pl-10 py-3 bg-gray-50 border border-gray-100 rounded-2xl outline-none text-sm font-medium text-gray-700 ${disabled ? 'opacity-50' : 'opacity-100'}`}
       >
         <option value="">{placeholder}</option>
         {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
