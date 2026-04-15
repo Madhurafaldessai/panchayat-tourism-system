@@ -42,7 +42,7 @@ const CitizenDashboardLayout = ({ children, activeNav, setActiveNav, userName })
 
         <div className="flex items-center gap-3 mb-10 pb-4 border-b border-emerald-500/50">
           <div className="p-2.5 bg-white/10 rounded-xl"><ShieldCheck size={26} /></div>
-          <h1 className="text-2xl font-black tracking-tighter uppercase">CitizenGuard</h1>
+          <h1 className="text-2xl font-black tracking-tighter uppercase">CitizenPortal</h1>
         </div>
         
         <nav className="flex-1 space-y-3">

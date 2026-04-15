@@ -116,7 +116,6 @@ const Dashboard = () => {
             <h1 className="text-3xl font-black text-slate-800 tracking-tighter uppercase">
               {adminVillage} <span className="text-emerald-600">Panchayat</span>
             </h1>
-            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">Management Console</p>
           </div>
           <button onClick={fetchIssues} className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 hover:rotate-180 transition-all duration-700">
             <TrendingUp className="text-emerald-600" size={20} />
@@ -151,9 +150,9 @@ const Dashboard = () => {
         </div>
 
         {/* Table Section */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-white overflow-hidden">
+        <div className="bg-white rounded-[2rem] shadow-2xl border border-white overflow-hidden">
           <div className="p-8 border-b border-slate-50">
-            <h3 className="text-[20px] font-black tracking-tight italic">Issue Action Registry</h3>
+            <h3 className="text-[20px] font-black  shadow-2xl rounded-2xl ">Issue Action Registry</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">

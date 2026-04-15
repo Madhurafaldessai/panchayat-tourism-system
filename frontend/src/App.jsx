@@ -5,16 +5,16 @@ import Dashboard from './pages/Dashboard';
 import Heatmap from './pages/Heatmap';
 import LoginPage from './pages/LoginPage';
 import CitizenDashboard from './pages/CitizenDashboard';
+// 1. IMPORT the new SolvedIssues page
+import SolvedIssues from './pages/SolvedIssues'; 
 
 function App() {
-  // Helper functions to check auth status dynamically
   const isCitizen = () => !!localStorage.getItem('citizenName');
   const isAdmin = () => !!localStorage.getItem('adminId');
 
   return (
     <BrowserRouter basename="/panchayat-tourism-system">
       <Routes>
-        {/* 1. Public Entry: Redirect only if a VALID session exists */}
         <Route 
           path="/" 
           element={
@@ -24,13 +24,11 @@ function App() {
           } 
         />
 
-        {/* 2. Citizen Route: Strictly Guarded */}
         <Route 
           path="/CitizenDashboard" 
           element={isCitizen() ? <CitizenDashboard /> : <Navigate to="/" replace />} 
         />
 
-        {/* 3. Admin Routes: Strictly Guarded */}
         <Route 
           path="/dashboard" 
           element={
@@ -45,10 +43,11 @@ function App() {
         >
           <Route index element={<Dashboard />} /> 
           <Route path="heatmap" element={<Heatmap />} />
-          <Route path="issues" element={<div>Solved Issues Content</div>} />
+          
+          {/* 2. UPDATE this line to point to the real component */}
+          <Route path="issues" element={<SolvedIssues />} />
         </Route>
 
-        {/* 4. Fallback: Catch-all redirect to root */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
