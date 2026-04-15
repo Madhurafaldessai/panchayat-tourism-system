@@ -1,11 +1,10 @@
 // @ts-nocheck
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Heatmap from './pages/Heatmap';
 import LoginPage from './pages/LoginPage';
 import CitizenDashboard from './pages/CitizenDashboard';
-// 1. IMPORT the new SolvedIssues page
 import SolvedIssues from './pages/SolvedIssues'; 
 
 function App() {
@@ -13,8 +12,10 @@ function App() {
   const isAdmin = () => !!localStorage.getItem('adminId');
 
   return (
-    <BrowserRouter basename="/panchayat-tourism-system">
+    // HashRouter is the most stable choice for GitHub Pages to avoid 404 errors on refresh
+    <Router>
       <Routes>
+        {/* Public Entry: Redirect only if a VALID session exists */}
         <Route 
           path="/" 
           element={
@@ -24,11 +25,13 @@ function App() {
           } 
         />
 
+        {/* Citizen Route: Strictly Guarded */}
         <Route 
           path="/CitizenDashboard" 
           element={isCitizen() ? <CitizenDashboard /> : <Navigate to="/" replace />} 
         />
 
+        {/* Admin Routes: Strictly Guarded */}
         <Route 
           path="/dashboard" 
           element={
@@ -43,14 +46,13 @@ function App() {
         >
           <Route index element={<Dashboard />} /> 
           <Route path="heatmap" element={<Heatmap />} />
-          
-          {/* 2. UPDATE this line to point to the real component */}
           <Route path="issues" element={<SolvedIssues />} />
         </Route>
 
+        {/* Fallback: Catch-all redirect to root */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 
