@@ -20,7 +20,7 @@ function App() {
           path="/" 
           element={
             isCitizen() ? <Navigate to="/CitizenDashboard" replace /> : 
-            isAdmin() ? <Navigate to="/dashboard" replace /> : 
+            isAdmin() ? <Navigate to="/Dashboard" replace /> : 
             <LoginPage />
           } 
         />
@@ -33,7 +33,7 @@ function App() {
 
         {/* Admin Routes: Strictly Guarded */}
         <Route 
-          path="/dashboard" 
+          path="/Dashboard" 
           element={
             isAdmin() ? (
               <DashboardLayout>
