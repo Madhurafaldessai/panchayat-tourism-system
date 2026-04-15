@@ -7,14 +7,14 @@ import LoginPage from './pages/LoginPage';
 import CitizenDashboard from './pages/CitizenDashboard';
 
 function App() {
-  // Helper functions to check auth status dynamically from the "storage locker"
+  // Helper functions to check auth status dynamically
   const isCitizen = () => !!localStorage.getItem('citizenName');
   const isAdmin = () => !!localStorage.getItem('adminId');
 
   return (
     <BrowserRouter basename="/panchayat-tourism-system">
       <Routes>
-        {/* 1. Public Entry: Now checks for existing sessions */}
+        {/* 1. Public Entry: Redirect only if a VALID session exists */}
         <Route 
           path="/" 
           element={
@@ -24,13 +24,13 @@ function App() {
           } 
         />
 
-        {/* 2. Citizen Route: Protected from unauthorized access */}
+        {/* 2. Citizen Route: Strictly Guarded */}
         <Route 
           path="/CitizenDashboard" 
           element={isCitizen() ? <CitizenDashboard /> : <Navigate to="/" replace />} 
         />
 
-        {/* 3. Admin Routes: Nested under DashboardLayout with Auth Guard */}
+        {/* 3. Admin Routes: Strictly Guarded */}
         <Route 
           path="/dashboard" 
           element={
@@ -45,7 +45,6 @@ function App() {
         >
           <Route index element={<Dashboard />} /> 
           <Route path="heatmap" element={<Heatmap />} />
-          {/* Ensure your solved issues route is also here if needed */}
           <Route path="issues" element={<div>Solved Issues Content</div>} />
         </Route>
 
