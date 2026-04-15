@@ -12,28 +12,25 @@ function App() {
   const isAdmin = () => !!localStorage.getItem('adminId');
 
   return (
-    // HashRouter is the most stable choice for GitHub Pages to avoid 404 errors on refresh
     <Router>
       <Routes>
-        {/* Public Entry: Redirect only if a VALID session exists */}
         <Route 
           path="/" 
           element={
             isCitizen() ? <Navigate to="/CitizenDashboard" replace /> : 
-            isAdmin() ? <Navigate to="/Dashboard" replace /> : 
+            isAdmin() ? <Navigate to="/dashboard" replace /> : 
             <LoginPage />
           } 
         />
 
-        {/* Citizen Route: Strictly Guarded */}
         <Route 
           path="/CitizenDashboard" 
           element={isCitizen() ? <CitizenDashboard /> : <Navigate to="/" replace />} 
         />
 
-        {/* Admin Routes: Strictly Guarded */}
+        {/* Changed path to lowercase 'dashboard' to match LoginPage navigate call */}
         <Route 
-          path="/Dashboard" 
+          path="/dashboard" 
           element={
             isAdmin() ? (
               <DashboardLayout>
@@ -49,7 +46,6 @@ function App() {
           <Route path="issues" element={<SolvedIssues />} />
         </Route>
 
-        {/* Fallback: Catch-all redirect to root */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
