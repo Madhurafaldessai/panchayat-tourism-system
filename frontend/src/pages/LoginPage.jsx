@@ -70,13 +70,32 @@ const LoginPage = () => {
     setLoading(true);
 
     if (role === "citizen") {
-      localStorage.setItem('citizenName', formData.name);
-      localStorage.setItem('citizenVillage', formData.village);
-      localStorage.setItem('citizenPhone', formData.phone);
-      localStorage.setItem('citizenTaluka', formData.taluka);
-      setLoading(false);
-      window.location.href = "/panchayat-tourism-system/CitizenDashboard";
-    } else {
+  const { data, error } = await supabase
+    .from('citizens')
+    .insert([
+      {
+        name: formData.name,
+        phone: formData.phone,
+        taluka: formData.taluka,
+        village: formData.village
+      }
+    ])
+    .select();
+
+  setLoading(false);
+
+  if (error) {
+    console.log(error);
+    alert("Error saving citizen data");
+    return;
+  }
+
+  // store minimal session
+  localStorage.setItem('citizenName', data[0].name);
+  localStorage.setItem('citizenVillage', data[0].village);
+
+  window.location.href = "/panchayat-tourism-system/CitizenDashboard";
+} else {
       const { data, error } = await supabase.from('admins').select('*').eq('admin_id', formData.adminId).eq('password', formData.password).single();
       setLoading(false);
       if (error || !data) { alert("Invalid Admin Credentials"); return; }

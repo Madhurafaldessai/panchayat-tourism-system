@@ -16,17 +16,17 @@ const Dashboard = () => {
   const adminVillage = localStorage.getItem('adminVillage') || 'Unknown';
 
   const fetchIssues = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('citizens')
-      .select('*')
-      .eq('village', adminVillage)
-      .order('created_at', { ascending: false });
+  setLoading(true);
 
-    if (!error) setInvestigations(data || []);
-    setLoading(false);
-  };
+  const { data, error } = await supabase
+    .from('reports') // ✅ ONLY reports
+    .select('*')
+    .eq('village', adminVillage) // ✅ ONLY that village
+    .order('created_at', { ascending: false });
 
+  if (!error) setInvestigations(data || []);
+  setLoading(false);
+};
   useEffect(() => {
     fetchIssues();
   }, [adminVillage]);
@@ -37,7 +37,7 @@ const Dashboard = () => {
   const handleAssign = async (id) => {
     const assignee = window.prompt("Enter department/staff for assignment:");
     if (!assignee) return;
-    await supabase.from('citizens').update({ assigned_to: assignee, status: 'Active' }).eq('id', id);
+    await supabase.from('reports').update({ assigned_to: assignee, status: 'Active' }).eq('id', id);
     fetchIssues();
   };
 
@@ -72,7 +72,7 @@ const Dashboard = () => {
 
       // 3. Update Database with the Image URL
       const { error: dbError } = await supabase
-        .from('citizens')
+        .from('reports')
         .update({ 
           status: 'Resolved',
           resolution_proof: publicUrl 
