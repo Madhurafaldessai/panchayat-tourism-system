@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, Clock, CheckCircle2, 
-  TrendingUp, MapPin, 
+  TrendingUp, 
   Trash2, HardHat, 
-  Droplets, Leaf, UserCheck, CheckCircle, Eye, Upload
+  Droplets, Leaf, UserCheck, Eye, Upload
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -21,8 +21,11 @@ const Dashboard = () => {
   const { data, error } = await supabase
     .from('reports') // ✅ ONLY reports
     .select('*')
-    .eq('village', adminVillage) // ✅ ONLY that village
+    .like('village', adminVillage) // ✅ ONLY that village
     .order('created_at', { ascending: false });
+    console.log("Admin Village:", adminVillage);
+console.log("Fetched:", data);
+console.log("Error:", error);
 
   if (!error) setInvestigations(data || []);
   setLoading(false);
@@ -55,7 +58,7 @@ const Dashboard = () => {
       const fileName = `proof-${id}-${Date.now()}.jpg`;
 
       // 1. Upload to Supabase Bucket
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('resolutions')
         .upload(fileName, file);
 
