@@ -6,19 +6,11 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat.js';
 import { supabase } from '../supabaseClient';
 
-<<<<<<< HEAD
-// Fix Leaflet marker icon issue
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-let DefaultIcon = L.icon({
-=======
-// Fix Leaflet marker icons
+// Fix Leaflet marker icons (Crucial for the markers to show up on the map)
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 const DefaultIcon = L.icon({
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconSize: [25, 41],
@@ -26,32 +18,23 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-<<<<<<< HEAD
 // 🔥 Heatmap Layer Component
-=======
-// 🔥 Heatmap Layer
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
 function HeatmapLayer({ points }) {
   const map = useMap();
 
   useEffect(() => {
     if (!map || !points || points.length === 0) return;
 
+    // Radius and Blur adjusted for a cleaner "Density" look
     const heatLayer = L.heatLayer(points, {
-      radius: 40,
-      blur: 25,
-      maxZoom: 10,
+      radius: 35, 
+      blur: 20,
+      maxZoom: 13,
       gradient: {
-<<<<<<< HEAD
-        0.2: '#22c55e', // 🟢 Low
-        0.5: '#eab308', // 🟡 Medium
-        0.8: '#f97316', // 🟠 High
-        1.0: '#ef4444'  // 🔴 Critical
-=======
-        0.4: '#10b981',
-        0.7: '#059669',
-        1.0: '#134e4a'
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
+        0.2: '#22c55e', // Green (Low)
+        0.5: '#eab308', // Yellow (Medium)
+        0.8: '#f97316', // Orange (High)
+        1.0: '#ef4444'  // Red (Critical Density)
       }
     }).addTo(map);
 
@@ -63,75 +46,42 @@ function HeatmapLayer({ points }) {
   return null;
 }
 
-// 🔥 MAIN COMPONENT
 const Heatmap = () => {
   const [points, setPoints] = useState([]);
   const [rawMarkers, setRawMarkers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Centered on Goa for the Panchayat project
   const goaCenter = [15.2993, 74.1240];
-  const citizenVillage = localStorage.getItem('citizenVillage');
 
-<<<<<<< HEAD
-  // 🔥 FETCH DATA
-=======
-  // 🔥 FETCH DATA (ONLY ACTIVE ISSUES)
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
   const fetchData = async () => {
     try {
       setLoading(true);
-
+      // Fetching live data from the 'reports' table
       const { data, error } = await supabase
-<<<<<<< HEAD
-        .from('citizens')
+        .from('reports')
         .select('*')
-        .eq('village', citizenVillage)     // ✅ village filter
-        .neq('status', 'Resolved');        // ✅ hide solved
-=======
-        .from('reports') // ✅ correct table
-        .select('*')
-        .neq('status', 'Resolved'); // ✅ remove resolved
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
+        .neq('status', 'Resolved'); // Only show active problems
 
       if (error) throw error;
 
       if (data) {
+        // Filter out any entries that might have missing coordinates to prevent crashes
         const validData = data.filter(item => {
           const lat = parseFloat(item.latitude);
           const lng = parseFloat(item.longitude);
           return !isNaN(lat) && !isNaN(lng);
         });
 
-<<<<<<< HEAD
-        // 🔥 PRIORITY → INTENSITY
-        const heatPoints = validData.map(p => {
-          let intensity = 0.2;
-
-          if (p.priority === 'Critical') intensity = 1.0;
-          else if (p.priority === 'High') intensity = 0.8;
-          else if (p.priority === 'Medium') intensity = 0.5;
-          else intensity = 0.2;
-
-          return [
-            parseFloat(p.latitude),
-            parseFloat(p.longitude),
-            intensity
-          ];
-        });
-
-        setPoints(heatPoints);
-=======
-        // Heatmap points
+        // Map data for Heatmap: [lat, lng, intensity]
         setPoints(
           validData.map(p => [
             parseFloat(p.latitude),
             parseFloat(p.longitude),
-            (p.upvotes || 1) * 0.2
+            (p.upvotes || 1) * 0.1 // Using upvotes as intensity multiplier
           ])
         );
 
-        // Markers
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
         setRawMarkers(validData);
       }
     } catch (err) {
@@ -141,29 +91,16 @@ const Heatmap = () => {
     }
   };
 
-<<<<<<< HEAD
-  // 🔥 INITIAL + REALTIME
-=======
-  // 🔥 INITIAL LOAD + REALTIME
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
   useEffect(() => {
     fetchData();
 
+    // Setup Realtime: Refresh map when any citizen reports an issue
     const channel = supabase
-<<<<<<< HEAD
-      .channel('map-live')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'citizens' },
-=======
-      .channel('reports-changes')
+      .channel('reports-map-sync')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'reports' },
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
-        () => {
-          fetchData(); // 🔥 auto refresh
-        }
+        () => fetchData() 
       )
       .subscribe();
 
@@ -173,99 +110,59 @@ const Heatmap = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full w-full space-y-4">
-<<<<<<< HEAD
-      {/* HEADER */}
-      <div className="flex justify-between items-center px-2">
-        <h1 className="text-4xl font-black text-[#134e4a] uppercase">
-          LIVE <span className="text-[#10b981]">MAP</span>
-        </h1>
-
-        <div className="flex items-center gap-3 bg-[#134e4a] text-[#A3E635] px-5 py-2 rounded-xl text-[10px] font-black">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          {rawMarkers.length} Issues
-        </div>
-      </div>
-
-      {/* MAP */}
-      <div className="w-full h-[calc(100vh-200px)] rounded-3xl overflow-hidden border-8 border-orange-50">
-        {loading ? (
-          <div className="h-full flex items-center justify-center">
-            <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-=======
+    <div className="flex flex-col h-full w-full space-y-4 font-sans">
       
-      {/* Header */}
-      <div className="flex justify-between items-center px-2">
-        <h1 className="text-4xl font-black text-[#134e4a] uppercase">
-          LIVE <span className="text-[#10b981]">MAP!</span>
+      {/* Visual Dashboard Header */}
+      <div className="flex justify-between items-center px-4">
+        <h1 className="text-4xl font-black text-[#134e4a] tracking-tighter">
+          ISSUE <span className="text-[#10b981]">HOTSPOTS</span>
         </h1>
 
-        <div className="flex items-center gap-3 bg-[#134e4a] text-[#A3E635] px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase shadow-xl">
-          <div className="w-2 h-2 bg-[#10b981] rounded-full animate-pulse"></div>
-          {rawMarkers.length} Active Issues
+        <div className="bg-[#134e4a] text-[#A3E635] px-6 py-2 rounded-2xl text-[10px] font-black uppercase flex items-center gap-2 shadow-lg">
+          <span className="w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+          {rawMarkers.length} Active Incidents
         </div>
       </div>
 
-      {/* Map */}
-      <div className="w-full h-[calc(100vh-220px)] rounded-[3rem] overflow-hidden border-[11px] border-orange-50 shadow-2xl relative">
+      {/* The Map Frame */}
+      <div className="w-full h-[calc(100vh-200px)] rounded-[2.5rem] overflow-hidden border-[8px] border-white shadow-xl relative bg-slate-100">
 
         {loading ? (
-          <div className="absolute inset-0 z-[1001] bg-white flex items-center justify-center">
-            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
+          <div className="absolute inset-0 z-[1001] bg-white/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+               <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+               <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Mapping Incidents...</p>
+            </div>
           </div>
         ) : (
           <MapContainer
             center={goaCenter}
             zoom={11}
             style={{ height: "100%", width: "100%" }}
+            scrollWheelZoom={true}
           >
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-<<<<<<< HEAD
+            {/* Render the Heatmap Glow */}
             {points.length > 0 && <HeatmapLayer points={points} />}
 
-            {rawMarkers.map((marker, idx) => (
+            {/* Individual Pins */}
+            {rawMarkers.map((marker) => (
               <Marker
-                key={idx}
+                key={marker.id}
                 position={[parseFloat(marker.latitude), parseFloat(marker.longitude)]}
               >
-                <Popup>
-                  <div className="text-xs">
-                    <b>{marker.category}</b><br />
-                    👍 {marker.upvotes || 1}<br />
-                    {marker.village}<br />
-                    {marker.taluka}
-=======
-            {/* Heatmap */}
-            {points.length > 0 && <HeatmapLayer points={points} />}
-
-            {/* Markers */}
-            {rawMarkers.map((marker, idx) => (
-              <Marker
-                key={idx}
-                position={[
-                  parseFloat(marker.latitude),
-                  parseFloat(marker.longitude)
-                ]}
-              >
-                <Popup>
-                  <div className="p-1 min-w-[120px]">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-black uppercase">
+                <Popup className="custom-popup">
+                  <div className="p-2 min-w-[150px]">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[8px] font-black uppercase">
                         {marker.category}
                       </span>
-                      <span className="text-emerald-900 font-black text-xs">
-                        👍 {marker.upvotes || 1}
-                      </span>
                     </div>
-                    <p className="text-[#134e4a] font-bold text-[10px]">
-                      {marker.village}
+                    <h4 className="font-black text-slate-800 text-sm leading-tight mb-1">{marker.title}</h4>
+                    <p className="text-[#134e4a] font-bold text-[9px] uppercase tracking-tighter">
+                      📍 {marker.village}, {marker.taluka}
                     </p>
-                    <p className="text-gray-400 text-[8px] uppercase">
-                      {marker.taluka}
-                    </p>
->>>>>>> 732deb2a640531c5e30b4430aa5d706ef8cc4527
                   </div>
                 </Popup>
               </Marker>
