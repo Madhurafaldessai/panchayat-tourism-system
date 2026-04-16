@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, Clock, CheckCircle2, 
-  TrendingUp, MapPin, 
+  TrendingUp, 
   Trash2, HardHat, 
-  Droplets, Leaf, UserCheck, CheckCircle, Eye, Upload
+  Droplets, Leaf, UserCheck, Eye, Upload
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -13,35 +13,65 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   
+  // Get Village from Storage
   const adminVillage = localStorage.getItem('adminVillage') || 'Unknown';
 
   const fetchIssues = async () => {
-  setLoading(true);
+    if (adminVillage === 'Unknown') return;
+    setLoading(true);
 
-  const { data, error } = await supabase
-    .from('reports') // ✅ ONLY reports
-    .select('*')
-    .eq('village', adminVillage) // ✅ ONLY that village
-    .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .eq('village', adminVillage)
+      .order('created_at', { ascending: false });
 
-  if (!error) setInvestigations(data || []);
-  setLoading(false);
-};
+    if (!error) {
+      setInvestigations(data || []);
+    } else {
+      console.error("Supabase Error:", error);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
     fetchIssues();
+
+    // Real-time Subscription
+    const channel = supabase
+      .channel('admin-updates')
+      .on(
+        'postgres_changes', 
+        { event: '*', schema: 'public', table: 'reports' }, 
+        () => {
+          fetchIssues(); 
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [adminVillage]);
 
-  const pendingCount = investigations.filter(i => i.status !== 'Resolved').length;
-  const unassignedCount = investigations.filter(i => i.assigned_to === 'Unassigned' && i.status !== 'Resolved').length;
+  // FIX: Safely calculate counts after data is fetched
+  const pendingCount = investigations ? investigations.filter(i => i.status !== 'Resolved').length : 0;
+  const unassignedCount = investigations ? investigations.filter(i => (i.assigned_to === 'Unassigned' || !i.assigned_to) && i.status !== 'Resolved').length : 0;
+  const resolvedCount = investigations ? investigations.filter(i => i.status === 'Resolved').length : 0;
 
   const handleAssign = async (id) => {
     const assignee = window.prompt("Enter department/staff for assignment:");
     if (!assignee) return;
-    await supabase.from('reports').update({ assigned_to: assignee, status: 'Active' }).eq('id', id);
+    
+    const { error } = await supabase
+      .from('reports')
+      .update({ assigned_to: assignee, status: 'Active' })
+      .eq('id', id);
+
+    if (error) alert("Assignment failed");
     fetchIssues();
   };
 
-  // NEW: HANDLE IMAGE UPLOAD AND SOLVE
   const handleUploadAndSolve = async (id) => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -54,8 +84,7 @@ const Dashboard = () => {
       setUploading(true);
       const fileName = `proof-${id}-${Date.now()}.jpg`;
 
-      // 1. Upload to Supabase Bucket
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('resolutions')
         .upload(fileName, file);
 
@@ -65,12 +94,10 @@ const Dashboard = () => {
         return;
       }
 
-      // 2. Get the Public URL
       const { data: { publicUrl } } = supabase.storage
         .from('resolutions')
         .getPublicUrl(fileName);
 
-      // 3. Update Database with the Image URL
       const { error: dbError } = await supabase
         .from('reports')
         .update({ 
@@ -101,7 +128,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#F4F7F6] p-6 md:p-10 text-slate-900 font-sans">
-      {/* Uploading Spinner Overlay */}
       {uploading && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center">
           <div className="w-16 h-16 border-4 border-white border-t-rose-500 rounded-full animate-spin mb-4"></div>
@@ -122,7 +148,7 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {/* Compact KPI Section */}
+        {/* KPI Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className={`p-6 rounded-[2rem] border transition-all duration-500 ${pendingCount > 0 ? 'bg-red-500 text-white shadow-xl scale-[1.02]' : 'bg-white'}`}>
             <div className={`w-10 h-10 rounded-xl mb-3 flex items-center justify-center ${pendingCount > 0 ? 'bg-white text-red-600' : 'bg-emerald-600 text-white'}`}>
@@ -145,14 +171,14 @@ const Dashboard = () => {
               <CheckCircle2 size={22} />
             </div>
             <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Resolved</p>
-            <h3 className="text-3xl font-black text-emerald-600">{investigations.filter(i => i.status === 'Resolved').length}</h3>
+            <h3 className="text-3xl font-black text-emerald-600">{resolvedCount}</h3>
           </div>
         </div>
 
         {/* Table Section */}
         <div className="bg-white rounded-[2rem] shadow-2xl border border-white overflow-hidden">
           <div className="p-8 border-b border-slate-50">
-            <h3 className="text-[20px] font-black  shadow-2xl rounded-2xl ">Issue Action Registry</h3>
+            <h3 className="text-[20px] font-black">Issue Action Registry</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -210,6 +236,11 @@ const Dashboard = () => {
                 ))}
               </tbody>
             </table>
+            {investigations.length === 0 && !loading && (
+                <div className="p-20 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">
+                    No incidents reported in {adminVillage}
+                </div>
+            )}
           </div>
         </div>
       </div>
