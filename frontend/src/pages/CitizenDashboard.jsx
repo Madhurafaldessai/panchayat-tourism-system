@@ -23,18 +23,18 @@ const CitizenDashboard = () => {
   useEffect(() => {
     fetchMyReports();
     // Listening for changes to the table to update UI in real-time
-    const channel = supabase.channel('c-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'citizens' }, () => fetchMyReports()).subscribe();
+    const channel = supabase.channel('c-updates').on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => fetchMyReports()).subscribe();
     return () => supabase.removeChannel(channel);
   }, []);
 
   const fetchMyReports = async () => {
     // We only want to see reports from OUR village
-    const { data } = await supabase
-      .from('citizens')
-      .select('*')
-      .eq('village', citizenVillage)
-      .order('created_at', { ascending: false });
-    if (data) setReports(data);
+const { data } = await supabase
+  .from('reports')
+  .select('*')
+  .eq('village', citizenVillage)
+  .order('created_at', { ascending: false });    
+  if (data) setReports(data);
   };
 
   const handleImageUpload = (e) => {
@@ -59,7 +59,7 @@ const CitizenDashboard = () => {
       const { data: { publicUrl } } = supabase.storage.from('resolutions').getPublicUrl(fileName);
 
       // POINT 1 & 2: Use dynamic data from login instead of hardcoded strings
-      await supabase.from('citizens').insert([{
+      await supabase.from('reports').insert([{
         name: citizenName,
         phone: citizenPhone,
         taluka: citizenTaluka,
