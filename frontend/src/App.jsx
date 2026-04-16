@@ -1,20 +1,19 @@
 // @ts-nocheck
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Heatmap from './pages/Heatmap';
 import LoginPage from './pages/LoginPage';
 import CitizenDashboard from './pages/CitizenDashboard';
+import SolvedIssues from './pages/SolvedIssues'; 
 
 function App() {
-  // Helper functions to check auth status dynamically from the "storage locker"
   const isCitizen = () => !!localStorage.getItem('citizenName');
   const isAdmin = () => !!localStorage.getItem('adminId');
 
   return (
-    <BrowserRouter basename="/panchayat-tourism-system">
+    <Router>
       <Routes>
-        {/* 1. Public Entry: Now checks for existing sessions */}
         <Route 
           path="/" 
           element={
@@ -24,13 +23,12 @@ function App() {
           } 
         />
 
-        {/* 2. Citizen Route: Protected from unauthorized access */}
         <Route 
           path="/CitizenDashboard" 
           element={isCitizen() ? <CitizenDashboard /> : <Navigate to="/" replace />} 
         />
 
-        {/* 3. Admin Routes: Nested under DashboardLayout with Auth Guard */}
+        {/* Changed path to lowercase 'dashboard' to match LoginPage navigate call */}
         <Route 
           path="/dashboard" 
           element={
@@ -45,14 +43,12 @@ function App() {
         >
           <Route index element={<Dashboard />} /> 
           <Route path="heatmap" element={<Heatmap />} />
-          {/* Ensure your solved issues route is also here if needed */}
-          <Route path="issues" element={<div>Solved Issues Content</div>} />
+          <Route path="issues" element={<SolvedIssues />} />
         </Route>
 
-        {/* 4. Fallback: Catch-all redirect to root */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

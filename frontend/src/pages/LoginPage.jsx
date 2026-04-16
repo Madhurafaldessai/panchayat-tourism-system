@@ -23,6 +23,7 @@ const LoginPage = () => {
   useEffect(() => {
     const citizenName = localStorage.getItem('citizenName');
     const adminId = localStorage.getItem('adminId');
+    // Using navigate ensuring we stay within the HashRouter system
     if (citizenName) navigate('/CitizenDashboard');
     else if (adminId) navigate('/dashboard');
   }, [navigate]);
@@ -70,19 +71,52 @@ const LoginPage = () => {
     setLoading(true);
 
     if (role === "citizen") {
-      localStorage.setItem('citizenName', formData.name);
-      localStorage.setItem('citizenVillage', formData.village);
-      localStorage.setItem('citizenPhone', formData.phone);
-      localStorage.setItem('citizenTaluka', formData.taluka);
+      const { data, error } = await supabase
+        .from('citizens')
+        .insert([
+          {
+            name: formData.name,
+            phone: formData.phone,
+            taluka: formData.taluka,
+            village: formData.village
+          }
+        ])
+        .select();
+
       setLoading(false);
-      window.location.href = "/panchayat-tourism-system/CitizenDashboard";
+
+      if (error) {
+        console.error(error);
+        alert("Error saving citizen data");
+        return;
+      }
+
+      // store minimal session
+      localStorage.setItem('citizenName', data[0].name);
+      localStorage.setItem('citizenVillage', data[0].village);
+
+      // --- FIXED: Replaced window.location.href with navigate ---
+      navigate('/CitizenDashboard');
     } else {
-      const { data, error } = await supabase.from('admins').select('*').eq('admin_id', formData.adminId).eq('password', formData.password).single();
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('admin_id', formData.adminId)
+        .eq('password', formData.password)
+        .single();
+        
       setLoading(false);
-      if (error || !data) { alert("Invalid Admin Credentials"); return; }
+      
+      if (error || !data) { 
+        alert("Invalid Admin Credentials"); 
+        return; 
+      }
+      
       localStorage.setItem('adminVillage', data.village);
       localStorage.setItem('adminId', data.admin_id);
-      window.location.href = "/panchayat-tourism-system/dashboard";
+      
+      // --- FIXED: Replaced window.location.href with navigate ---
+      navigate('/dashboard');
     }
   };
 
@@ -93,14 +127,10 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-600 to-teal-900 p-4 font-sans text-gray-800">
-      {/* Neumorphic Main Container */}
       <div 
         className="w-full max-w-md bg-emerald-700/30 backdrop-blur-lg rounded-[3rem] p-10 border border-white/10"
-        style={{
-          boxShadow: '20px 20px 60px #112d24, -20px -20px 60px #2b6d58'
-        }}
+        style={{ boxShadow: '20px 20px 60px #112d24, -20px -20px 60px #2b6d58' }}
       >
-        
         <div className="text-center mb-10">
           <div 
             className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-emerald-600"
@@ -112,10 +142,7 @@ const LoginPage = () => {
           <p className="text-[10px] text-emerald-300 font-bold uppercase tracking-widest mt-2 opacity-80">Tourism Management System</p>
         </div>
 
-        {/* Neumorphic Role Switcher */}
-        <div 
-          className="flex mb-8 bg-emerald-800/40 rounded-2xl p-2 shadow-[inset_4px_4px_8px_#112d24,inset_-4px_-4px_8px_#2b6d58]"
-        >
+        <div className="flex mb-8 bg-emerald-800/40 rounded-2xl p-2 shadow-[inset_4px_4px_8px_#112d24,inset_-4px_-4px_8px_#2b6d58]">
           <button
             type="button"
             onClick={() => setRole("citizen")}
@@ -172,9 +199,7 @@ const LoginPage = () => {
           <button 
             disabled={loading}
             className="w-full bg-emerald-500 hover:bg-emerald-400 text-white py-5 rounded-2xl mt-4 font-black tracking-[0.2em] transition-all active:scale-95 disabled:opacity-50 text-[13px] uppercase"
-            style={{
-                boxShadow: '6px 6px 15px #112d24, -6px -6px 15px #2b6d58'
-            }}
+            style={{ boxShadow: '6px 6px 15px #112d24, -6px -6px 15px #2b6d58' }}
           >
             {loading ? "PROCESSING..." : "PROCEED"}
           </button>
@@ -184,7 +209,6 @@ const LoginPage = () => {
   );
 };
 
-// Neumorphic Input
 const Input = ({ icon, error, ...props }) => (
   <div className="w-full">
     <div className="relative group">
@@ -200,7 +224,6 @@ const Input = ({ icon, error, ...props }) => (
   </div>
 );
 
-// Neumorphic Select
 const SelectBox = ({ icon, options, placeholder, error, disabled, ...props }) => (
   <div className="w-full">
     <div className="relative group">

@@ -4,7 +4,7 @@ import {
   ShieldAlert, Clock, CheckCircle2, 
   TrendingUp, 
   Trash2, HardHat, 
-  Droplets, Leaf, UserCheck, Eye, Upload
+  Droplets, Leaf, UserCheck, CheckCircle, Eye, Upload
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -17,9 +17,7 @@ const Dashboard = () => {
   const adminVillage = localStorage.getItem('adminVillage') || 'Unknown';
 
   const fetchIssues = async () => {
-    if (adminVillage === 'Unknown') return;
     setLoading(true);
-
     const { data, error } = await supabase
       .from('reports')
       .select('*')
@@ -62,13 +60,7 @@ const Dashboard = () => {
   const handleAssign = async (id) => {
     const assignee = window.prompt("Enter department/staff for assignment:");
     if (!assignee) return;
-    
-    const { error } = await supabase
-      .from('reports')
-      .update({ assigned_to: assignee, status: 'Active' })
-      .eq('id', id);
-
-    if (error) alert("Assignment failed");
+    await supabase.from('reports').update({ assigned_to: assignee, status: 'Active' }).eq('id', id);
     fetchIssues();
   };
 
@@ -176,6 +168,7 @@ const Dashboard = () => {
         </div>
 
         {/* Table Section */}
+        <div className="bg-white rounded-[2rem] shadow-2xl border border-white overflow-hidden">
         <div className="bg-white rounded-[2rem] shadow-2xl border border-white overflow-hidden">
           <div className="p-8 border-b border-slate-50">
             <h3 className="text-[20px] font-black">Issue Action Registry</h3>
