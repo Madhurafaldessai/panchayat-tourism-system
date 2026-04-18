@@ -20,12 +20,6 @@ const LoginPage = () => {
 
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    const citizenName = localStorage.getItem('citizenName');
-    const adminId = localStorage.getItem('adminId');
-    if (citizenName) navigate('/CitizenDashboard');
-    else if (adminId) navigate('/dashboard');
-  }, [navigate]);
 
   const talukas = [
     "Bardez", "Tiswadi", "Salcete", "Ponda", "Mormugao", 
@@ -75,14 +69,16 @@ const LoginPage = () => {
       localStorage.setItem('citizenPhone', formData.phone);
       localStorage.setItem('citizenTaluka', formData.taluka);
       setLoading(false);
-      window.location.href = "/panchayat-tourism-system/CitizenDashboard";
+      navigate('/CitizenDashboard', { replace: true });
+window.location.reload();
     } else {
       const { data, error } = await supabase.from('admins').select('*').eq('admin_id', formData.adminId).eq('password', formData.password).single();
       setLoading(false);
       if (error || !data) { alert("Invalid Admin Credentials"); return; }
       localStorage.setItem('adminVillage', data.village);
       localStorage.setItem('adminId', data.admin_id);
-      window.location.href = "/panchayat-tourism-system/dashboard";
+      navigate('/dashboard', { replace: true });
+window.location.reload();
     }
   };
 
