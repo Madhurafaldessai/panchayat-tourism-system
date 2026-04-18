@@ -10,6 +10,24 @@
     <link rel="stylesheet" crossorigin href="/panchayat-tourism-system/assets/index-5cV5rZt7.css">
   </head>
   <body>
-    <div id="root"></div>
-  </body>
+  <div id="root"></div>
+
+  <script>
+    (function () {
+      const path = window.location.pathname;
+
+      // if no hash, convert to hash route
+      if (!window.location.hash) {
+        const base = "/panchayat-tourism-system";
+        const newUrl =
+          window.location.origin +
+          base +
+          "/#" +
+          path.replace(base, "");
+
+        window.location.replace(newUrl);
+      }
+    })();
+  </script>
+</body>
 </html>
